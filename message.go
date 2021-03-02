@@ -8,10 +8,10 @@ import (
 type messageType int32
 
 const (
-	msgResponse     messageType = iota // multi-packet response.
-	msgUnused                          // no known use case.
-	msgCommand                         // run a command.
-	msgAuthenticate                    // authenticate.
+	msgResponse     messageType = iota // 0: response.
+	_                                  // 1: unused.
+	msgCommand                         // 2: command.
+	msgAuthenticate                    // 3: login.
 )
 
 var terminator = []byte{0, 0}
@@ -40,7 +40,6 @@ type response struct {
 }
 
 func decode(msg []byte) (response, error) {
-	// Decode the response.
 	reader := bytes.NewReader(msg)
 	var responseLength int32
 	if err := binary.Read(reader, binary.LittleEndian, &responseLength); err != nil {

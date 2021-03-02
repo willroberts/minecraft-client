@@ -7,7 +7,9 @@ import (
 
 // Client manages a connection to a Minecraft server.
 type Client struct {
-	conn          net.Conn
+	conn net.Conn
+
+	// FIXME: Lock around this.
 	lastRequestID int32
 }
 
@@ -28,35 +30,35 @@ func (c *Client) Close() error {
 
 // Authenticate starts a logged-in RCON session.
 func (c *Client) Authenticate(password string) error {
-	return c.sendMessage(msgAuthenticate, password)
-}
-
-func (c *Client) sendMessage(msgType messageType, msg string) error {
-	encoded, err := encode(msgType, []byte(msg), c.lastRequestID+1)
-	if err != nil {
-		return err
-	}
-	c.lastRequestID++
-
-	// Send the message to the server.
-	if _, err := c.conn.Write(encoded); err != nil {
-		return err
-	}
-
-	// Read the response.
-	respBytes := make([]byte, 14)
-	if _, err := c.conn.Read(respBytes); err != nil {
-		return err
-	}
-
-	resp, err := decode(respBytes)
+	resp, err := c.sendMessage(msgAuthenticate, password)
 	if err != nil {
 		return err
 	}
 
+	// FIXME: lastRequestID not threadsafe; return from sendMessage instead.
 	if resp.ID != c.lastRequestID || resp.Type != msgCommand {
 		return errors.New("failed to authenticate")
 	}
 
 	return nil
+}
+
+func (c *Client) sendMessage(msgType messageType, msg string) (response, error) {
+	encoded, err := encode(msgType, []byte(msg), c.lastRequestID+1)
+	if err != nil {
+		return response{}, err
+	}
+	c.lastRequestID++
+
+	if _, err := c.conn.Write(encoded); err != nil {
+		return response{}, err
+	}
+
+	// FIXME: Read more than 14 bytes for other responses.
+	respBytes := make([]byte, 14)
+	if _, err := c.conn.Read(respBytes); err != nil {
+		return response{}, err
+	}
+
+	return decode(respBytes)
 }
