@@ -43,7 +43,6 @@ func encode(msgType messageType, msg []byte, requestID int32) ([]byte, error) {
 func decode(msg []byte) (response, error) {
 	reader := bytes.NewReader(msg)
 
-	// TODO: Consider parsing directly into a &response{} object.
 	var responseLength int32
 	if err := binary.Read(reader, binary.LittleEndian, &responseLength); err != nil {
 		return response{}, err

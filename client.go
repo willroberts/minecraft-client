@@ -9,10 +9,8 @@ const maxResponseSize = 4110 // https://wiki.vg/Rcon#Fragmentation
 
 // Client manages a connection to a Minecraft server.
 type Client struct {
-	conn net.Conn
-
-	// FIXME: Lock around this.
-	lastRequestID int32
+	conn        net.Conn
+	idGenerator *idGenerator
 }
 
 // NewClient creates a TCP connection to a Minecraft server.
@@ -22,7 +20,7 @@ func NewClient(hostport string) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{conn: conn}, nil
+	return &Client{conn: conn, idGenerator: &idGenerator{}}, nil
 }
 
 // Close disconnects from the server.
@@ -37,12 +35,8 @@ func (c *Client) Authenticate(password string) error {
 		return err
 	}
 
-	// FIXME: lastRequestID not threadsafe; return from sendMessage instead.
-	if resp.ID != c.lastRequestID {
-		return errors.New("failed to authenticate: invalid response ID")
-	}
 	if resp.Type != msgCommand {
-		return errors.New("failed to authenticate: invalid response type")
+		return errors.New("failed to authenticate")
 	}
 
 	return nil
@@ -58,11 +52,12 @@ func (c *Client) SendCommand(command string) (string, error) {
 }
 
 func (c *Client) sendMessage(msgType messageType, msg string) (response, error) {
-	encoded, err := encode(msgType, []byte(msg), c.lastRequestID+1)
+	requestID := c.idGenerator.GenerateID()
+
+	encoded, err := encode(msgType, []byte(msg), requestID)
 	if err != nil {
 		return response{}, err
 	}
-	c.lastRequestID++
 
 	if _, err := c.conn.Write(encoded); err != nil {
 		return response{}, err
@@ -73,5 +68,14 @@ func (c *Client) sendMessage(msgType messageType, msg string) (response, error) 
 		return response{}, err
 	}
 
-	return decode(respBytes)
+	resp, err := decode(respBytes)
+	if err != nil {
+		return response{}, err
+	}
+
+	if resp.ID != requestID {
+		return response{}, errors.New("invalid response ID")
+	}
+
+	return resp, nil
 }
