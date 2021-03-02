@@ -3,6 +3,8 @@ package minecraft
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -18,6 +20,11 @@ func TestNewClient(t *testing.T) {
 	defer client.Close()
 }
 
+func TestConnectionFailure(t *testing.T) {
+	_, err := NewClient("127.0.0.1:25576")
+	assert.NotNil(t, err)
+}
+
 func TestAuthenticate(t *testing.T) {
 	client, err := NewClient(testHost)
 	if err != nil {
@@ -28,6 +35,17 @@ func TestAuthenticate(t *testing.T) {
 	if err := client.Authenticate(testPassword); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestAuthenticationFailure(t *testing.T) {
+	client, err := NewClient(testHost)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+
+	err = client.Authenticate("invalid_password")
+	assert.Equal(t, err, errAuthenticationFailure)
 }
 
 func TestSendCommand(t *testing.T) {

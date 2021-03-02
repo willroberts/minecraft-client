@@ -7,6 +7,11 @@ import (
 
 const maxResponseSize = 4110 // https://wiki.vg/Rcon#Fragmentation
 
+var (
+	errAuthenticationFailure = errors.New("failed to authenticate")
+	errInvalidResponseID     = errors.New("invalid response ID")
+)
+
 // Client manages a connection to a Minecraft server.
 type Client struct {
 	conn        net.Conn
@@ -30,13 +35,12 @@ func (c *Client) Close() error {
 
 // Authenticate starts a logged-in RCON session.
 func (c *Client) Authenticate(password string) error {
-	resp, err := c.sendMessage(msgAuthenticate, password)
-	if err != nil {
+	if _, err := c.sendMessage(msgAuthenticate, password); err != nil {
+		// When invalid credentials are supplied, the server will return a non-matching response ID.
+		if err == errInvalidResponseID {
+			return errAuthenticationFailure
+		}
 		return err
-	}
-
-	if resp.Type != msgCommand {
-		return errors.New("failed to authenticate")
 	}
 
 	return nil
@@ -51,6 +55,7 @@ func (c *Client) SendCommand(command string) (string, error) {
 	return string(resp.Body), nil
 }
 
+// sendMessage uses the client's underlying TCP connection to send and receive data.
 func (c *Client) sendMessage(msgType messageType, msg string) (response, error) {
 	requestID := c.idGenerator.GenerateID()
 
@@ -74,7 +79,7 @@ func (c *Client) sendMessage(msgType messageType, msg string) (response, error) 
 	}
 
 	if resp.ID != requestID {
-		return response{}, errors.New("invalid response ID")
+		return response{}, errInvalidResponseID
 	}
 
 	return resp, nil

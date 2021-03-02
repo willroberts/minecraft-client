@@ -23,6 +23,7 @@ const (
 	headerSize = 10 // 4-byte request ID, 4-byte message type, 2-byte terminator.
 )
 
+// encode serializes an RCON command.
 func encode(msgType messageType, msg []byte, requestID int32) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	for _, v := range []interface{}{
@@ -39,6 +40,7 @@ func encode(msgType messageType, msg []byte, requestID int32) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// decode deserialize an RCON response.
 func decode(msg []byte) (response, error) {
 	reader := bytes.NewReader(msg)
 
