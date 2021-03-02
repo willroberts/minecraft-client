@@ -8,11 +8,10 @@ import (
 type messageType int32
 
 type response struct {
-	Length        int32
-	ID            int32
-	Type          messageType
-	Body          []byte
-	DataRemaining bool
+	Length int32
+	ID     int32
+	Type   messageType
+	Body   []byte
 }
 
 const (
@@ -64,6 +63,7 @@ func decode(msg []byte) (response, error) {
 		Type:   responseType,
 	}
 
+	// TODO: Add support for responses over 4KB in size.
 	remainingBytes := responseLength - headerSize
 	if remainingBytes > 0 {
 		data := make([]byte, remainingBytes)
