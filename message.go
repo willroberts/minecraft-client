@@ -14,27 +14,20 @@ const (
 	msgAuthenticate                    // authenticate.
 )
 
+var terminator = []byte{0, 0}
+
 func encode(msgType messageType, msg []byte, requestID int32) ([]byte, error) {
 	buf := new(bytes.Buffer)
-	// Request length,
-	if err := binary.Write(buf, binary.LittleEndian, int32(len(msg)+10)); err != nil {
-		return nil, err
-	}
-	// Request ID.
-	if err := binary.Write(buf, binary.LittleEndian, requestID); err != nil {
-		return nil, err
-	}
-	// Message type.
-	if err := binary.Write(buf, binary.LittleEndian, msgType); err != nil {
-		return nil, err
-	}
-	// Payload.
-	if err := binary.Write(buf, binary.LittleEndian, []byte(msg)); err != nil {
-		return nil, err
-	}
-	// Terminator.
-	if err := binary.Write(buf, binary.LittleEndian, []byte("\x00\x00")); err != nil {
-		return nil, err
+	for _, v := range []interface{}{
+		int32(len(msg) + 10), // Request length.
+		requestID,
+		msgType,
+		[]byte(msg), // Payload.
+		terminator,
+	} {
+		if err := binary.Write(buf, binary.LittleEndian, v); err != nil {
+			return nil, err
+		}
 	}
 	return buf.Bytes(), nil
 }
@@ -56,6 +49,8 @@ func decode(msg []byte) (int32, int32, messageType, error) {
 	if err := binary.Read(reader, binary.LittleEndian, &responseType); err != nil {
 		return 0, 0, 0, err
 	}
+
+	// TODO: Read response payload for non-auth messages.
 
 	return responseLength, responseID, responseType, nil
 }

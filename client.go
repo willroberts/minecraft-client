@@ -27,13 +27,11 @@ func (c *Client) Close() error {
 }
 
 // Authenticate starts a logged-in RCON session.
-// TODO: Obfuscate password.
 func (c *Client) Authenticate(password string) error {
-	return c.SendMessage(msgAuthenticate, password)
+	return c.sendMessage(msgAuthenticate, password)
 }
 
-// SendMessage sends an RCON command to the server.
-func (c *Client) SendMessage(msgType messageType, msg string) error {
+func (c *Client) sendMessage(msgType messageType, msg string) error {
 	encoded, err := encode(msgType, []byte(msg), c.lastRequestID+1)
 	if err != nil {
 		return err
