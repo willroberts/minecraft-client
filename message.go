@@ -32,25 +32,36 @@ func encode(msgType messageType, msg []byte, requestID int32) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func decode(msg []byte) (int32, int32, messageType, error) {
+type response struct {
+	Length int32
+	ID     int32
+	Type   messageType
+	Body   []byte
+}
+
+func decode(msg []byte) (response, error) {
 	// Decode the response.
 	reader := bytes.NewReader(msg)
 	var responseLength int32
 	if err := binary.Read(reader, binary.LittleEndian, &responseLength); err != nil {
-		return 0, 0, 0, err
+		return response{}, err
 	}
 
 	var responseID int32
 	if err := binary.Read(reader, binary.LittleEndian, &responseID); err != nil {
-		return 0, 0, 0, err
+		return response{}, err
 	}
 
 	var responseType messageType
 	if err := binary.Read(reader, binary.LittleEndian, &responseType); err != nil {
-		return 0, 0, 0, err
+		return response{}, err
 	}
 
 	// TODO: Read response payload for non-auth messages.
 
-	return responseLength, responseID, responseType, nil
+	return response{
+		Length: responseLength,
+		ID:     responseID,
+		Type:   responseType,
+	}, nil
 }

@@ -44,17 +44,17 @@ func (c *Client) sendMessage(msgType messageType, msg string) error {
 	}
 
 	// Read the response.
-	resp := make([]byte, 14)
-	if _, err := c.conn.Read(resp); err != nil {
+	respBytes := make([]byte, 14)
+	if _, err := c.conn.Read(respBytes); err != nil {
 		return err
 	}
 
-	_, id, msgType, err := decode(resp)
+	resp, err := decode(respBytes)
 	if err != nil {
 		return err
 	}
 
-	if id != c.lastRequestID || msgType != msgCommand {
+	if resp.ID != c.lastRequestID || resp.Type != msgCommand {
 		return errors.New("failed to authenticate")
 	}
 
