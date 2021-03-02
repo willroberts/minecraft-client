@@ -3,10 +3,17 @@ package minecraft
 import (
 	"bytes"
 	"encoding/binary"
-	"log"
 )
 
 type messageType int32
+
+type response struct {
+	Length        int32
+	ID            int32
+	Type          messageType
+	Body          []byte
+	DataRemaining bool
+}
 
 const (
 	msgResponse     messageType = iota // 0: response.
@@ -17,29 +24,20 @@ const (
 	headerSize = 10 // 4-byte request ID, 4-byte message type, 2-byte terminator.
 )
 
-var terminator = []byte{0, 0}
-
 func encode(msgType messageType, msg []byte, requestID int32) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	for _, v := range []interface{}{
 		int32(len(msg) + headerSize), // Request length.
 		requestID,
 		msgType,
-		[]byte(msg), // Payload.
-		terminator,
+		[]byte(msg),  // Payload.
+		[]byte{0, 0}, // Terminator.
 	} {
 		if err := binary.Write(buf, binary.LittleEndian, v); err != nil {
 			return nil, err
 		}
 	}
 	return buf.Bytes(), nil
-}
-
-type response struct {
-	Length int32
-	ID     int32
-	Type   messageType
-	Body   []byte
 }
 
 func decode(msg []byte) (response, error) {
@@ -61,17 +59,20 @@ func decode(msg []byte) (response, error) {
 		return response{}, err
 	}
 
-	if responseLength-headerSize > 0 {
-		log.Println("there was more data to be read!")
-		var discarded int16 // Terminator.
-		if err := binary.Read(reader, binary.LittleEndian, &discarded); err != nil {
-			return response{}, err
-		}
-	}
-
-	return response{
+	resp := response{
 		Length: responseLength,
 		ID:     responseID,
 		Type:   responseType,
-	}, nil
+	}
+
+	remainingBytes := responseLength - headerSize
+	if remainingBytes > 0 {
+		data := make([]byte, remainingBytes)
+		if err := binary.Read(reader, binary.LittleEndian, &data); err != nil {
+			return response{}, err
+		}
+		resp.Body = data
+	}
+
+	return resp, nil
 }

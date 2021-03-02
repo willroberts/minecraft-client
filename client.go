@@ -48,6 +48,15 @@ func (c *Client) Authenticate(password string) error {
 	return nil
 }
 
+// SendCommand sends an RCON command to the server.
+func (c *Client) SendCommand(command string) (string, error) {
+	resp, err := c.sendMessage(msgCommand, command)
+	if err != nil {
+		return "", err
+	}
+	return string(resp.Body), nil
+}
+
 func (c *Client) sendMessage(msgType messageType, msg string) (response, error) {
 	encoded, err := encode(msgType, []byte(msg), c.lastRequestID+1)
 	if err != nil {
