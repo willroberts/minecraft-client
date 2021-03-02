@@ -20,5 +20,3 @@ go test -v
 ## Reference
 
 - https://wiki.vg/Rcon
-- https://github.com/micvbang/pocketmine-rcon
-- https://github.com/Tnze/go-mc
