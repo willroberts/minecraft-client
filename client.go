@@ -5,6 +5,8 @@ import (
 	"net"
 )
 
+const maxResponseSize = 4110 // https://wiki.vg/Rcon#Fragmentation
+
 // Client manages a connection to a Minecraft server.
 type Client struct {
 	conn net.Conn
@@ -36,8 +38,11 @@ func (c *Client) Authenticate(password string) error {
 	}
 
 	// FIXME: lastRequestID not threadsafe; return from sendMessage instead.
-	if resp.ID != c.lastRequestID || resp.Type != msgCommand {
-		return errors.New("failed to authenticate")
+	if resp.ID != c.lastRequestID {
+		return errors.New("failed to authenticate: invalid response ID")
+	}
+	if resp.Type != msgCommand {
+		return errors.New("failed to authenticate: invalid response type")
 	}
 
 	return nil
@@ -54,8 +59,7 @@ func (c *Client) sendMessage(msgType messageType, msg string) (response, error) 
 		return response{}, err
 	}
 
-	// FIXME: Read more than 14 bytes for other responses.
-	respBytes := make([]byte, 14)
+	respBytes := make([]byte, maxResponseSize)
 	if _, err := c.conn.Read(respBytes); err != nil {
 		return response{}, err
 	}

@@ -3,6 +3,7 @@ package minecraft
 import (
 	"bytes"
 	"encoding/binary"
+	"log"
 )
 
 type messageType int32
@@ -12,6 +13,8 @@ const (
 	_                                  // 1: unused.
 	msgCommand                         // 2: command.
 	msgAuthenticate                    // 3: login.
+
+	headerSize = 10 // 4-byte request ID, 4-byte message type, 2-byte terminator.
 )
 
 var terminator = []byte{0, 0}
@@ -19,7 +22,7 @@ var terminator = []byte{0, 0}
 func encode(msgType messageType, msg []byte, requestID int32) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	for _, v := range []interface{}{
-		int32(len(msg) + 10), // Request length.
+		int32(len(msg) + headerSize), // Request length.
 		requestID,
 		msgType,
 		[]byte(msg), // Payload.
@@ -41,6 +44,8 @@ type response struct {
 
 func decode(msg []byte) (response, error) {
 	reader := bytes.NewReader(msg)
+
+	// TODO: Consider parsing directly into a &response{} object.
 	var responseLength int32
 	if err := binary.Read(reader, binary.LittleEndian, &responseLength); err != nil {
 		return response{}, err
@@ -56,7 +61,13 @@ func decode(msg []byte) (response, error) {
 		return response{}, err
 	}
 
-	// TODO: Read response payload for non-auth messages.
+	if responseLength-headerSize > 0 {
+		log.Println("there was more data to be read!")
+		var discarded int16 // Terminator.
+		if err := binary.Read(reader, binary.LittleEndian, &discarded); err != nil {
+			return response{}, err
+		}
+	}
 
 	return response{
 		Length: responseLength,
