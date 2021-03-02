@@ -2,7 +2,7 @@
 
 A client for the Minecraft RCON API.
 
-## Usage
+## Library Usage
 
 ```go
 client, err := minecraft.NewClient("127.0.0.1:25575")
@@ -21,6 +21,20 @@ if err != nil {
 }
 
 log.Println(resp) // "Seed: [-2474125574890692308]"
+```
+
+## Shell Utility
+
+If you are looking for a tool rather than a library, try the shell command in
+`cmd/shell`:
+
+```bash
+$ go run main.go --hostport 127.0.0.1:25575 --password minecraft
+Starting RCON shell. Press Ctrl-C to exit.
+> list
+There are 0 of a max of 20 players online:
+> seed
+Seed: [5853448882787620410]
 ```
 
 ## Limitations
