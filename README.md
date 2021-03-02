@@ -5,7 +5,7 @@ A client for the Minecraft RCON API.
 ## Usage
 
 ```go
-client, err := NewClient("127.0.0.1:25575")
+client, err := minecraft.NewClient("127.0.0.1:25575")
 if err != nil {
 	log.Fatal(err)
 }
