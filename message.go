@@ -63,7 +63,6 @@ func decode(msg []byte) (response, error) {
 		Type:   responseType,
 	}
 
-	// TODO: Add support for responses over 4KB in size.
 	remainingBytes := responseLength - headerSize
 	if remainingBytes > 0 {
 		data := make([]byte, remainingBytes)

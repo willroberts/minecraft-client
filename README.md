@@ -5,28 +5,27 @@ A client for the Minecraft RCON API.
 ## Usage
 
 ```go
-	client, err := NewClient("127.0.0.1:25575")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer client.Close()
+client, err := NewClient("127.0.0.1:25575")
+if err != nil {
+	log.Fatal(err)
+}
+defer client.Close()
 
-	if err := client.Authenticate("my_password"); err != nil {
-		log.Fatal(err)
-	}
+if err := client.Authenticate("my_password"); err != nil {
+	log.Fatal(err)
+}
 
-	resp, err := client.SendCommand("seed")
-	if err != nil {
-		log.Fatal(err)
-	}
+resp, err := client.SendCommand("seed")
+if err != nil {
+	log.Fatal(err)
+}
 
-	log.Println(resp) // "Seed: [-2474125574890692308]"
+log.Println(resp) // "Seed: [-2474125574890692308]"
 ```
 
 ## Limitations
 
-Does not properly handle server responses over 4KB in size. Response bodies will
-be truncated in this case.
+Response bodies over 4KB will be truncated.
 
 ## Starting a server for testing
 
