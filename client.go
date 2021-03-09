@@ -35,7 +35,7 @@ func (c *Client) Close() error {
 
 // Authenticate starts a logged-in RCON session.
 func (c *Client) Authenticate(password string) error {
-	if _, err := c.sendMessage(msgAuthenticate, password); err != nil {
+	if _, err := c.sendMessage(MsgAuthenticate, password); err != nil {
 		// When invalid credentials are supplied, the server will return a non-matching response ID.
 		if err == errInvalidResponseID {
 			return errAuthenticationFailure
@@ -48,7 +48,7 @@ func (c *Client) Authenticate(password string) error {
 
 // SendCommand sends an RCON command to the server.
 func (c *Client) SendCommand(command string) (string, error) {
-	resp, err := c.sendMessage(msgCommand, command)
+	resp, err := c.sendMessage(MsgCommand, command)
 	if err != nil {
 		return "", err
 	}
@@ -56,30 +56,35 @@ func (c *Client) SendCommand(command string) (string, error) {
 }
 
 // sendMessage uses the client's underlying TCP connection to send and receive data.
-func (c *Client) sendMessage(msgType messageType, msg string) (response, error) {
-	requestID := c.idGenerator.GenerateID()
+func (c *Client) sendMessage(msgType MessageType, msg string) (Message, error) {
+	request := Message{
+		Length: int32(len(msg) + headerSize),
+		ID:     c.idGenerator.GenerateID(),
+		Type:   msgType,
+		Body:   []byte(msg),
+	}
 
-	encoded, err := encode(msgType, []byte(msg), requestID)
+	encoded, err := EncodeMessage(request)
 	if err != nil {
-		return response{}, err
+		return Message{}, err
 	}
 
 	if _, err := c.conn.Write(encoded); err != nil {
-		return response{}, err
+		return Message{}, err
 	}
 
 	respBytes := make([]byte, maxResponseSize)
 	if _, err := c.conn.Read(respBytes); err != nil {
-		return response{}, err
+		return Message{}, err
 	}
 
-	resp, err := decode(respBytes)
+	resp, err := DecodeMessage(respBytes)
 	if err != nil {
-		return response{}, err
+		return Message{}, err
 	}
 
-	if resp.ID != requestID {
-		return response{}, errInvalidResponseID
+	if resp.ID != request.ID {
+		return Message{}, errInvalidResponseID
 	}
 
 	return resp, nil

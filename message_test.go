@@ -6,8 +6,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEncode(t *testing.T) {
-	b, err := encode(msgCommand, []byte("seed"), 1)
+func TestEncodeMessage(t *testing.T) {
+	msg := Message{
+		Length: int32(len("seed") + headerSize),
+		ID:     1,
+		Type:   MsgCommand,
+		Body:   []byte("seed"),
+	}
+
+	b, err := EncodeMessage(msg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,7 +35,7 @@ func TestEncode(t *testing.T) {
 	assert.Equal(t, b, expected)
 }
 
-func TestDecode(t *testing.T) {
+func TestDecodeMessage(t *testing.T) {
 	b := []byte{
 		// Response length: 38 bytes.
 		38, 0, 0, 0,
@@ -39,13 +46,13 @@ func TestDecode(t *testing.T) {
 		// Message: "Seed: [-2474125574890692308]".
 		83, 101, 101, 100, 58, 32, 91, 45, 50, 52, 55, 52, 49, 50, 53, 53, 55, 52, 56, 57, 48, 54, 57, 50, 51, 48, 56, 93,
 	}
-	resp, err := decode(b)
+	resp, err := DecodeMessage(b)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	assert.Equal(t, resp.Length, int32(38))
 	assert.Equal(t, resp.ID, int32(2))
-	assert.Equal(t, resp.Type, msgResponse)
+	assert.Equal(t, resp.Type, MsgResponse)
 	assert.Equal(t, string(resp.Body), "Seed: [-2474125574890692308]")
 }

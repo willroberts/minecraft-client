@@ -14,6 +14,11 @@ import (
 var (
 	hostport string
 	password string
+
+	quitCommands = map[string]struct{}{
+		"exit": {},
+		"quit": {},
+	}
 )
 
 func init() {
@@ -34,15 +39,19 @@ func main() {
 	}
 
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Starting RCON shell. Press Ctrl-C to exit.")
+	fmt.Println("Starting RCON shell. Use 'exit', 'quit', or Ctrl-C to exit.")
 	for {
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			log.Fatal("failed to read input:", err)
 		}
-
 		command := strings.TrimRight(input, "\r\n")
+
+		if _, ok := quitCommands[command]; ok {
+			break
+		}
+
 		resp, err := client.SendCommand(command)
 		if err != nil {
 			log.Fatal("failed to send command:", err)
