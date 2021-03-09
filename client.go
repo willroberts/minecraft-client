@@ -3,6 +3,7 @@ package minecraft
 import (
 	"errors"
 	"net"
+	"sync"
 	"sync/atomic"
 )
 
@@ -17,6 +18,7 @@ var (
 type Client struct {
 	conn   net.Conn
 	lastID int32
+	lock   sync.Mutex
 }
 
 // NewClient creates a TCP connection to a Minecraft server.
@@ -43,7 +45,6 @@ func (c *Client) Authenticate(password string) error {
 		}
 		return err
 	}
-
 	return nil
 }
 
@@ -70,6 +71,7 @@ func (c *Client) sendMessage(msgType MessageType, msg string) (Message, error) {
 		return Message{}, err
 	}
 
+	c.lock.Lock()
 	if _, err := c.conn.Write(encoded); err != nil {
 		return Message{}, err
 	}
@@ -78,6 +80,7 @@ func (c *Client) sendMessage(msgType MessageType, msg string) (Message, error) {
 	if _, err := c.conn.Read(respBytes); err != nil {
 		return Message{}, err
 	}
+	c.lock.Unlock()
 
 	resp, err := DecodeMessage(respBytes)
 	if err != nil {

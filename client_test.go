@@ -1,7 +1,9 @@
 package minecraft
 
 import (
+	"errors"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -66,5 +68,42 @@ func TestSendCommand(t *testing.T) {
 
 	if !strings.HasPrefix(out, "Seed: [") {
 		t.Fatal()
+	}
+}
+
+func TestSendCommandAsync(t *testing.T) {
+	client, err := NewClient(testHost)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+
+	if err := client.Authenticate(testPassword); err != nil {
+		t.Fatal(err)
+	}
+
+	var wg sync.WaitGroup
+	var errCh = make(chan error, 0)
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func() {
+			out, err := client.SendCommand("seed")
+			if err != nil {
+				errCh <- err
+			}
+
+			if !strings.HasPrefix(out, "Seed: [") {
+				errCh <- errors.New("bad seed")
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	select {
+	case err := <-errCh:
+		t.Fatalf("failed to send async command: %s", err)
+	default:
+		return
 	}
 }
