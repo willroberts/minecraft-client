@@ -29,7 +29,7 @@ const (
 )
 
 // EncodeMessage serializes an RCON command.
-// Format: [4-byte message size | 4-byte message ID | 4-byte message size | variable length message | 2-byte terminator].
+// Format: [4-byte message size | 4-byte message ID | 4-byte message type | variable length message | 2-byte terminator].
 func EncodeMessage(msg Message) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	for _, v := range []interface{}{
