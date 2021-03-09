@@ -3,6 +3,7 @@ package minecraft
 import (
 	"errors"
 	"net"
+	"sync/atomic"
 )
 
 const maxResponseSize = 4110 // https://wiki.vg/Rcon#Fragmentation
@@ -14,8 +15,8 @@ var (
 
 // Client manages a connection to a Minecraft server.
 type Client struct {
-	conn        net.Conn
-	idGenerator *idGenerator
+	conn   net.Conn
+	lastID int32
 }
 
 // NewClient creates a TCP connection to a Minecraft server.
@@ -25,7 +26,7 @@ func NewClient(hostport string) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{conn: conn, idGenerator: &idGenerator{}}, nil
+	return &Client{conn: conn}, nil
 }
 
 // Close disconnects from the server.
@@ -59,7 +60,7 @@ func (c *Client) SendCommand(command string) (string, error) {
 func (c *Client) sendMessage(msgType MessageType, msg string) (Message, error) {
 	request := Message{
 		Length: int32(len(msg) + headerSize),
-		ID:     c.idGenerator.GenerateID(),
+		ID:     atomic.AddInt32(&c.lastID, 1),
 		Type:   msgType,
 		Body:   []byte(msg),
 	}
