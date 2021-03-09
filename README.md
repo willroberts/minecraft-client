@@ -30,7 +30,7 @@ If you are looking for a tool rather than a library, try the shell command in
 
 ```bash
 $ go run main.go --hostport 127.0.0.1:25575 --password minecraft
-Starting RCON shell. Press Ctrl-C to exit.
+Starting RCON shell. Use 'exit', 'quit', or Ctrl-C to exit.
 > list
 There are 0 of a max of 20 players online:
 > seed
