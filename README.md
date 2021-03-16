@@ -13,7 +13,7 @@ if err != nil {
 defer client.Close()
 
 // Send some commands.
-if err := client.Authenticate("my_password"); err != nil {
+if err := client.Authenticate("password"); err != nil {
 	log.Fatal(err)
 }
 resp, err := client.SendCommand("seed")
