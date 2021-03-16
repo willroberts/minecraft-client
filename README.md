@@ -25,8 +25,7 @@ log.Println(resp) // "Seed: [-2474125574890692308]"
 
 ## Shell Utility
 
-If you are looking for a tool rather than a library, try the shell command in
-`cmd/shell`:
+If you are looking for a tool rather than a library, try the shell command:
 
 ```bash
 $ cd cmd/shell
