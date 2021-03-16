@@ -29,6 +29,7 @@ If you are looking for a tool rather than a library, try the shell command in
 `cmd/shell`:
 
 ```bash
+$ cd cmd/shell
 $ go run main.go --hostport 127.0.0.1:25575 --password minecraft
 Starting RCON shell. Use 'exit', 'quit', or Ctrl-C to exit.
 > list
