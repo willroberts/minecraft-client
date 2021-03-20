@@ -49,12 +49,8 @@ func (c *Client) Authenticate(password string) error {
 }
 
 // SendCommand sends an RCON command to the server.
-func (c *Client) SendCommand(command string) (string, error) {
-	resp, err := c.sendMessage(MsgCommand, command)
-	if err != nil {
-		return "", err
-	}
-	return string(resp.Body), nil
+func (c *Client) SendCommand(command string) (Message, error) {
+	return c.sendMessage(MsgCommand, command)
 }
 
 // sendMessage uses the client's underlying TCP connection to send and receive data.
@@ -63,7 +59,7 @@ func (c *Client) sendMessage(msgType MessageType, msg string) (Message, error) {
 		Length: int32(len(msg) + headerSize),
 		ID:     atomic.AddInt32(&c.lastID, 1),
 		Type:   msgType,
-		Body:   []byte(msg),
+		Body:   msg,
 	}
 
 	encoded, err := EncodeMessage(request)

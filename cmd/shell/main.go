@@ -56,6 +56,6 @@ func main() {
 		if err != nil {
 			log.Fatal("failed to send command:", err)
 		}
-		fmt.Println(resp)
+		fmt.Println(resp.Body)
 	}
 }

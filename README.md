@@ -20,7 +20,7 @@ resp, err := client.SendCommand("seed")
 if err != nil {
 	log.Fatal(err)
 }
-log.Println(resp) // "Seed: [1871644822592853811]"
+log.Println(resp.Body) // "Seed: [1871644822592853811]"
 ```
 
 ## Shell Utility

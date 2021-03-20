@@ -11,7 +11,7 @@ func TestEncodeMessage(t *testing.T) {
 		Length: int32(len("seed") + headerSize),
 		ID:     1,
 		Type:   MsgCommand,
-		Body:   []byte("seed"),
+		Body:   "seed",
 	}
 
 	b, err := EncodeMessage(msg)
@@ -54,5 +54,5 @@ func TestDecodeMessage(t *testing.T) {
 	assert.Equal(t, resp.Length, int32(38))
 	assert.Equal(t, resp.ID, int32(2))
 	assert.Equal(t, resp.Type, MsgResponse)
-	assert.Equal(t, string(resp.Body), "Seed: [-2474125574890692308]")
+	assert.Equal(t, resp.Body, "Seed: [-2474125574890692308]")
 }

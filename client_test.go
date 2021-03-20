@@ -66,7 +66,7 @@ func TestSendCommand(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !strings.HasPrefix(out, "Seed: [") {
+	if !strings.HasPrefix(out.Body, "Seed: [") {
 		t.Fatal()
 	}
 }
@@ -92,7 +92,7 @@ func TestSendCommandAsync(t *testing.T) {
 				errCh <- err
 			}
 
-			if !strings.HasPrefix(out, "Seed: [") {
+			if !strings.HasPrefix(out.Body, "Seed: [") {
 				errCh <- errors.New("bad seed")
 			}
 			wg.Done()

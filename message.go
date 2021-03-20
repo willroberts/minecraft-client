@@ -13,7 +13,7 @@ type Message struct {
 	Length int32
 	ID     int32
 	Type   MessageType
-	Body   []byte
+	Body   string
 }
 
 const (
@@ -36,7 +36,7 @@ func EncodeMessage(msg Message) ([]byte, error) {
 		msg.Length,
 		msg.ID,
 		msg.Type,
-		msg.Body,
+		[]byte(msg.Body),
 		[]byte{0, 0}, // 2-byte terminator.
 	} {
 		if err := binary.Write(buf, binary.LittleEndian, v); err != nil {
@@ -78,7 +78,7 @@ func DecodeMessage(msg []byte) (Message, error) {
 		if err := binary.Read(reader, binary.LittleEndian, &data); err != nil {
 			return Message{}, err
 		}
-		resp.Body = data
+		resp.Body = string(data)
 	}
 
 	return resp, nil
