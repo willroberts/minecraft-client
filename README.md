@@ -1,5 +1,9 @@
 # minecraft-client
 
+[![GoDoc Badge]][GoDoc]
+[![Travis Badge]][Travis]
+[![License Badge]][License]
+
 A client for the Minecraft RCON protocol.
 
 ## Library Usage
@@ -59,3 +63,10 @@ $ go test -v
 ## Reference
 
 - https://wiki.vg/Rcon
+
+[GoDoc]: https://pkg.go.dev/github.com/willroberts/minecraft-client
+[GoDoc Badge]: https://pkg.go.dev/badge/github.com/willroberts/minecraft-client
+[Travis]: https://travis-ci.org/willroberts/minecraft-client
+[Travis Badge]: https://api.travis-ci.org/willroberts/minecraft-client.svg?branch=master
+[License]: https://www.gnu.org/licenses/gpl-3.0
+[License Badge]: https://img.shields.io/badge/License-GPLv3-blue.svg
