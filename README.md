@@ -49,7 +49,8 @@ Response bodies over 4KB will be truncated.
 
 ```
 $ docker pull itzg/minecraft-server
-$ docker run --name=minecraft-server -p 25575:25575 -d -e EULA=TRUE itzg/minecraft-server
+$ docker run --name=minecraft-server -p 25575:25575 -d -e EULA=TRUE -e ENABLE_RCON=true itzg/minecraft-server
+$ go run main.go
 ```
 
 ## Running Tests
