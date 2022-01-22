@@ -88,12 +88,13 @@ func (c *Client) sendMessage(msgType MessageType, msg string) (Message, error) {
 
 	respBytes := make([]byte, maxResponseSize)
 	c.conn.SetReadDeadline(time.Now().Add(c.timeout))
-	if _, err := c.conn.Read(respBytes); err != nil {
+	n, err := c.conn.Read(respBytes)
+	if err != nil {
 		return Message{}, err
 	}
 	c.lock.Unlock()
 
-	resp, err := DecodeMessage(respBytes)
+	resp, err := DecodeMessage(respBytes[:n])
 	if err != nil {
 		return Message{}, err
 	}
