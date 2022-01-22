@@ -28,7 +28,7 @@ func init() {
 }
 
 func main() {
-	client, err := minecraft.NewClient(hostport)
+	client, err := minecraft.NewClient(minecraft.ClientOptions{Hostport: hostport})
 	if err != nil {
 		log.Fatal("failed to connect:", err)
 	}

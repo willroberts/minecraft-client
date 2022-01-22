@@ -5,6 +5,7 @@ import (
 	"net"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 const maxResponseSize = 4110 // https://wiki.vg/Rcon#Fragmentation
@@ -12,23 +13,35 @@ const maxResponseSize = 4110 // https://wiki.vg/Rcon#Fragmentation
 var (
 	errAuthenticationFailure = errors.New("failed to authenticate")
 	errInvalidResponseID     = errors.New("invalid response ID")
+
+	defaultTimeout = 5 * time.Second
 )
 
 // Client manages a connection to a Minecraft server.
 type Client struct {
-	conn   net.Conn
-	lastID int32
-	lock   sync.Mutex
+	conn    net.Conn
+	lastID  int32
+	lock    sync.Mutex
+	timeout time.Duration
+}
+
+// ClientOptions contains configurable values for the Client.
+type ClientOptions struct {
+	Hostport string
+	Timeout  time.Duration
 }
 
 // NewClient creates a TCP connection to a Minecraft server.
-func NewClient(hostport string) (*Client, error) {
-	conn, err := net.Dial("tcp", hostport)
+func NewClient(options ClientOptions) (*Client, error) {
+	if options.Timeout == 0 {
+		options.Timeout = defaultTimeout
+	}
+	conn, err := net.DialTimeout("tcp", options.Hostport, options.Timeout)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Client{conn: conn}, nil
+	return &Client{conn: conn, timeout: options.Timeout}, nil
 }
 
 // Close disconnects from the server.
@@ -68,17 +81,20 @@ func (c *Client) sendMessage(msgType MessageType, msg string) (Message, error) {
 	}
 
 	c.lock.Lock()
+	c.conn.SetWriteDeadline(time.Now().Add(c.timeout))
 	if _, err := c.conn.Write(encoded); err != nil {
 		return Message{}, err
 	}
 
 	respBytes := make([]byte, maxResponseSize)
-	if _, err := c.conn.Read(respBytes); err != nil {
+	c.conn.SetReadDeadline(time.Now().Add(c.timeout))
+	n, err := c.conn.Read(respBytes)
+	if err != nil {
 		return Message{}, err
 	}
 	c.lock.Unlock()
 
-	resp, err := DecodeMessage(respBytes)
+	resp, err := DecodeMessage(respBytes[:n])
 	if err != nil {
 		return Message{}, err
 	}
