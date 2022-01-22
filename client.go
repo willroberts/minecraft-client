@@ -19,9 +19,10 @@ var (
 
 // Client manages a connection to a Minecraft server.
 type Client struct {
-	conn   net.Conn
-	lastID int32
-	lock   sync.Mutex
+	conn    net.Conn
+	lastID  int32
+	lock    sync.Mutex
+	timeout time.Duration
 }
 
 // ClientOptions contains configurable values for the Client.
@@ -40,7 +41,7 @@ func NewClient(options ClientOptions) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{conn: conn}, nil
+	return &Client{conn: conn, timeout: options.Timeout}, nil
 }
 
 // Close disconnects from the server.
@@ -80,11 +81,13 @@ func (c *Client) sendMessage(msgType MessageType, msg string) (Message, error) {
 	}
 
 	c.lock.Lock()
+	c.conn.SetWriteDeadline(time.Now().Add(c.timeout))
 	if _, err := c.conn.Write(encoded); err != nil {
 		return Message{}, err
 	}
 
 	respBytes := make([]byte, maxResponseSize)
+	c.conn.SetReadDeadline(time.Now().Add(c.timeout))
 	if _, err := c.conn.Read(respBytes); err != nil {
 		return Message{}, err
 	}
