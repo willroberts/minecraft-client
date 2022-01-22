@@ -10,7 +10,10 @@ A client for the Minecraft RCON protocol.
 
 ```go
 // Create a new client and connect to the server.
-client, err := minecraft.NewClient("127.0.0.1:25575")
+client, err := minecraft.NewClient(minecraft.ClientOptions{
+	Hostport: "127.0.0.1:25575",
+	Timeout: 5 * time.Second, // Optional, this is the default value.
+})
 if err != nil {
 	log.Fatal(err)
 }
@@ -26,6 +29,12 @@ if err != nil {
 }
 log.Println(resp.Body) // "Seed: [1871644822592853811]"
 ```
+
+## Upgrading from 1.x to 2.x
+
+The client is now instantiated with a ClientOptions struct in order to allow future client changes to be nonbreaking.
+
+Change `NewClient("hostport")` to `NewClient(ClientOptions{Hostport: "hostport"})` to upgrade.
 
 ## Shell Utility
 

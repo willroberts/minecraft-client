@@ -5,6 +5,7 @@ import (
 	"net"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 const maxResponseSize = 4110 // https://wiki.vg/Rcon#Fragmentation
@@ -12,6 +13,8 @@ const maxResponseSize = 4110 // https://wiki.vg/Rcon#Fragmentation
 var (
 	errAuthenticationFailure = errors.New("failed to authenticate")
 	errInvalidResponseID     = errors.New("invalid response ID")
+
+	defaultTimeout = 5 * time.Second
 )
 
 // Client manages a connection to a Minecraft server.
@@ -21,9 +24,18 @@ type Client struct {
 	lock   sync.Mutex
 }
 
+// ClientOptions contains configurable values for the Client.
+type ClientOptions struct {
+	Hostport string
+	Timeout  time.Duration
+}
+
 // NewClient creates a TCP connection to a Minecraft server.
-func NewClient(hostport string) (*Client, error) {
-	conn, err := net.Dial("tcp", hostport)
+func NewClient(options ClientOptions) (*Client, error) {
+	if options.Timeout == 0 {
+		options.Timeout = defaultTimeout
+	}
+	conn, err := net.DialTimeout("tcp", options.Hostport, options.Timeout)
 	if err != nil {
 		return nil, err
 	}

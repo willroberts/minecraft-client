@@ -1,4 +1,4 @@
-// +build integration
+//go:build integration
 
 package minecraft
 
@@ -17,7 +17,7 @@ var (
 )
 
 func TestNewClient(t *testing.T) {
-	client, err := NewClient(testHost)
+	client, err := NewClient(ClientOptions{Hostport: testHost})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,12 +25,17 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestConnectionFailure(t *testing.T) {
-	_, err := NewClient("127.0.0.1:25576")
+	_, err := NewClient(ClientOptions{Hostport: "127.0.0.1:25576"})
+	assert.NotNil(t, err)
+}
+
+func TestConnectionTimeout(t *testing.T) {
+	_, err := NewClient(ClientOptions{Hostport: "172.24.172.24:25575"})
 	assert.NotNil(t, err)
 }
 
 func TestAuthenticate(t *testing.T) {
-	client, err := NewClient(testHost)
+	client, err := NewClient(ClientOptions{Hostport: testHost})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +47,7 @@ func TestAuthenticate(t *testing.T) {
 }
 
 func TestAuthenticationFailure(t *testing.T) {
-	client, err := NewClient(testHost)
+	client, err := NewClient(ClientOptions{Hostport: testHost})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +58,7 @@ func TestAuthenticationFailure(t *testing.T) {
 }
 
 func TestSendCommand(t *testing.T) {
-	client, err := NewClient(testHost)
+	client, err := NewClient(ClientOptions{Hostport: testHost})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +79,7 @@ func TestSendCommand(t *testing.T) {
 }
 
 func TestSendCommandAsync(t *testing.T) {
-	client, err := NewClient(testHost)
+	client, err := NewClient(ClientOptions{Hostport: testHost})
 	if err != nil {
 		t.Fatal(err)
 	}
