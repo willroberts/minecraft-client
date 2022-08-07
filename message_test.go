@@ -21,7 +21,7 @@ func TestEncodeMessage(t *testing.T) {
 
 	expected := []byte{
 		// Request length: 14 bytes.
-		111, 0, 0, 0,
+		14, 0, 0, 0,
 		// Request ID: 1.
 		1, 0, 0, 0,
 		// Request type: 2 (msgCommand).
